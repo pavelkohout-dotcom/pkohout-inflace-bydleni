@@ -1,0 +1,18 @@
+{
+  "start": "2015-12",
+  "ref_period": ["2024-01", "2024-12"],
+  "default_housing_share": 0.30,
+  "mortgage_term_years": 30,
+  "weights_2024_promile": {
+    "01": 168.6, "02": 82.9, "03": 39.1,
+    "041": 34.4978, "042": 119.2951, "043": 13.5077, "044": 20.5143, "045": 81.9959,
+    "05": 51.2319, "06": 25.7, "07": 99.1, "08": 47.5, "09": 78.5,
+    "10": 6.1, "11": 68.2, "12": 17.8, "13": 45.5
+  },
+  "weights_source": "ČSÚ, Index spotřebitelských cen podle CZ-COICOP, stálé váhy roku 2024 (‰); tab. 1 a 13, 09/2026",
+  "arad": {
+    "new_net_rate": "SMIRNOOBUVMIRS305CZK013111",
+    "new_all_rate": "SMIRNOOBUVMIRS305CZK011111",
+    "stock_rate": "SMIRSTOBUVMIRS305CZK1"
+  }
+}
