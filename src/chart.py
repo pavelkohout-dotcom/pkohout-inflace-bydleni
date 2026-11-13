@@ -9,20 +9,26 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib import font_manager  # noqa: E402
 import pandas as pd  # noqa: E402
 
 import model  # noqa: E402
 
 # --- design pkohout.com -----------------------------------------------------
-SURFACE = "#FFFFFF"
-INK = "#191919"        # primární text
-INK2 = "#595858"       # sekundární text
-MUTED = "#727272"      # popisky os
-GRID = "#E5E5E4"       # hairline mřížka
-BASE = "#ACABAB"       # osa
+SURFACE = "#FBF6EB"   # krémové pozadí webu
+INK = "#141211"        # primární text
+INK2 = "#4A4642"       # sekundární text
+MUTED = "#6F6A62"      # popisky os
+GRID = "#E6DFD0"       # hairline mřížka
+BASE = "#A9A397"       # osa
 ACCENT = "#BA3A36"     # červená pkohout.com: situace čtenáře
-BENCH = "#727272"      # neutrální šedá: oficiální CPI (zdůrazni jednu, ostatní zašedni)
-FONT = ["Avenir Next", "Avenir", "Helvetica Neue", "Liberation Sans", "DejaVu Sans"]
+BENCH = "#6F6A62"      # neutrální šedá: oficiální CPI (zdůrazni jednu, ostatní zašedni)
+FONT = ["EB Garamond", "Garamond", "Times New Roman", "DejaVu Serif"]
+_FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts")
+for _f in ("EBGaramond-Regular.ttf", "EBGaramond-SemiBold.ttf"):  # písmo je v repozitáři (licence SIL OFL)
+    _p = os.path.join(_FONT_DIR, _f)
+    if os.path.exists(_p):
+        font_manager.fontManager.addfont(_p)
 
 PANELS = [
     ("kupujici", "Kupující", "Chce si koupit byt: cena starších bytů × splátka"),
@@ -33,11 +39,11 @@ PANELS = [
 
 
 def _pct(v):
-    return f"{v:+.0f} %".replace("+", "+").replace("-", "−")
+    return f"{v:+.1f} %".replace(".", ",").replace("-", "−")
 
 
 def render(res, H, out_dir):
-    plt.rcParams.update({"font.family": FONT, "font.size": 10.5, "axes.unicode_minus": True})
+    plt.rcParams.update({"font.family": FONT, "font.size": 11.5, "axes.unicode_minus": True})
     idx = res["idx"]
     x = idx.to_timestamp() + pd.offsets.MonthEnd(0)
     est = res["hpi_est_from"]
@@ -55,20 +61,20 @@ def render(res, H, out_dir):
     pad = 5
 
     fig = plt.figure(figsize=(12, 9), dpi=150, facecolor=SURFACE)
-    fig.text(0.055, 0.945, "Inflace bydlení podle toho, v jaké jste situaci",
-             fontsize=21, color=INK, ha="left", va="center", weight="bold")
+    fig.text(0.055, 0.945, "Inflace se započtením bydlení: podle toho, v jaké jste situaci",
+             fontsize=23.5, color=INK, ha="left", va="center", weight="bold")
     last = idx[-1]
     fig.text(0.055, 0.905,
              f"Index cen, prosinec 2015 = 100, do {last.month}/{last.year}. "
              f"Podíl bydlení v rozpočtu {int(round(H * 100))} %.",
-             fontsize=11.5, color=INK2, ha="left", va="center")
+             fontsize=12.9, color=INK2, ha="left", va="center")
 
     # sdílená legenda (>= 2 série => legenda vždy; klíč je krátká čára)
     lx, ly = 0.055, 0.868
     for label, color in (("Situace čtenáře", ACCENT), ("Oficiální CPI (přepočet)", BENCH)):
         fig.add_artist(plt.Line2D([lx, lx + 0.03], [ly, ly], color=color, lw=1.2,
                                   transform=fig.transFigure, solid_capstyle="round"))
-        t = fig.text(lx + 0.038, ly, label, fontsize=10.5, color=INK2, ha="left", va="center")
+        t = fig.text(lx + 0.038, ly, label, fontsize=11.8, color=INK2, ha="left", va="center")
         fig.canvas.draw()
         w = t.get_window_extent().width / fig.bbox.width
         lx += 0.038 + w + 0.03
@@ -86,7 +92,7 @@ def render(res, H, out_dir):
         ax.set_yticks(range(ymin, ymax + 1, 25))
         ax.grid(axis="y", color=GRID, lw=0.6, ls="-")
         ax.set_axisbelow(True)
-        ax.tick_params(axis="both", length=0, labelsize=9.5, labelcolor=MUTED, pad=5)
+        ax.tick_params(axis="both", length=0, labelsize=10.6, labelcolor=MUTED, pad=5)
         ax.xaxis.set_major_locator(matplotlib.dates.YearLocator(2))
         ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%Y"))
 
@@ -104,14 +110,16 @@ def render(res, H, out_dir):
             ax.plot([x[-1]], [ser.iloc[-1]], marker="o", ms=5.2, mfc=color, mec=SURFACE, mew=1.0,
                     zorder=5, clip_on=False)
         ax.annotate(f"{s.iloc[-1]:.0f}", (x[-1], s.iloc[-1]), xytext=(7, 0), textcoords="offset points",
-                    fontsize=10.5, color=INK, weight="bold", va="center", ha="left", annotation_clip=False)
+                    fontsize=11.8, color=INK, weight="bold", va="center", ha="left", annotation_clip=False)
 
         tot, off = s.iloc[-1] - 100, bench.iloc[-1] - 100
-        ax.text(0, 1.215, title, transform=ax.transAxes, fontsize=14, color=INK, weight="bold",
+        ax.text(0, 1.215, title, transform=ax.transAxes, fontsize=15.7, color=INK, weight="bold",
                 ha="left", va="bottom")
-        ax.text(0, 1.125, f"{_pct(tot)} od 12/2015 · oficiální CPI {_pct(off)}",
-                transform=ax.transAxes, fontsize=10.5, color=INK2, ha="left", va="bottom")
-        ax.text(0, 1.045, sub, transform=ax.transAxes, fontsize=9, color=MUTED, ha="left", va="bottom")
+        months = len(s) - 1
+        pa, off_pa = model.per_annum(tot, months), model.per_annum(off, months)
+        ax.text(0, 1.125, f"{_pct(tot)} od 12/2015 ({_pct(pa)} ročně) · oficiální CPI {_pct(off)} ({_pct(off_pa)} ročně)",
+                transform=ax.transAxes, fontsize=11.8, color=INK2, ha="left", va="bottom")
+        ax.text(0, 1.045, sub, transform=ax.transAxes, fontsize=10.1, color=MUTED, ha="left", va="bottom")
         ax.set_xlim(x[0], x[-1])
     for ax in axes[::2]:
         ax.tick_params(axis="y", labelleft=True)
@@ -121,9 +129,9 @@ def render(res, H, out_dir):
     foot = ("Zdroj: ČSÚ (CPI, ceny starších bytů), ČNB ARAD (sazby z úvěrů na bydlení), vlastní výpočet. "
             "Experimentální index, nejde o oficiální statistiku.")
     if est is not None:
-        foot += f" Čárkovaně: odhad cen bytů od {est.month}/{est.year} (poslední data ČSÚ za {res['last_hpi_q']})."
-    fig.text(0.055, 0.045, foot, fontsize=8.6, color=MUTED, ha="left", va="center", wrap=True)
-    fig.text(0.965, 0.018, "pkohout.com", fontsize=10, color=ACCENT, ha="right", va="center", weight="bold")
+        foot += f"\nČárkovaně: odhad cen bytů od {est.month}/{est.year} (poslední data ČSÚ za {res['last_hpi_q']})."
+    fig.text(0.055, 0.046, foot, fontsize=9.6, color=MUTED, ha="left", va="center", linespacing=1.35)
+    fig.text(0.965, 0.018, "pkohout.com", fontsize=11.2, color=ACCENT, ha="right", va="center", weight="bold")
 
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "graf_inflace_bydleni.png")

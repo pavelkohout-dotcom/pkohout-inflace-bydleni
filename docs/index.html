@@ -40,6 +40,10 @@ h1{font-size:clamp(32px,5.4vw,44px);line-height:1.1;margin:0 0 14px;font-weight:
 .chip{font:inherit;font-size:16px;background:transparent;border:1px solid var(--line);border-radius:0;padding:4px 14px;cursor:pointer;color:var(--ink)}
 .chip:hover{background:var(--card)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+#mode-box[hidden]{display:none}
+.unit{font-size:.36em;letter-spacing:0;margin-left:.25em;color:var(--ink2)}
+.tile[aria-pressed="true"] .unit{color:#FBE9E4}
+.hero .unit{font-size:.3em}
 .slider{min-width:240px;flex:1;max-width:380px}
 .slider label{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-bottom:6px}
 .slider label b{color:var(--ink);font-weight:600}
@@ -118,6 +122,10 @@ td{font-variant-numeric:tabular-nums}
         <p class="row-label" id="lbl-per">Období</p>
         <div class="chips" id="chips" role="group" aria-labelledby="lbl-per"></div>
       </div>
+      <div id="mode-box">
+        <p class="row-label" id="lbl-mode">Zobrazit</p>
+        <div class="chips" id="modes" role="group" aria-labelledby="lbl-mode"></div>
+      </div>
       <div class="slider" id="slider-box">
         <label for="share"><span>Podíl bydlení na vašich výdajích</span><b id="share-val">30 %</b></label>
         <input type="range" id="share" min="10" max="60" step="1" value="30">
@@ -180,6 +188,7 @@ function rebase(arr, i0) {
   return arr.map((v, i) => (i < i0 || v == null ? null : (v / b) * 100));
 }
 function pct(arr, i0, i1) { return (arr[i1] / arr[i0] - 1) * 100; }
+function annualize(totalPct, months) { return (Math.pow(1 + totalPct / 100, 12 / months) - 1) * 100; }
 function startIndex(len, months) { return months == null ? 0 : Math.max(0, len - 1 - months); }
 /* CALC-END */
 
@@ -202,7 +211,7 @@ const NB = " ";
 const fmtPct = (v, d) => (v < 0 ? "−" : "+") + (d ? nf1 : nf0).format(Math.abs(v)) + NB + "%";
 const fmtPlain = (v, d) => (d ? nf1 : nf0).format(v) + NB + "%";
 
-const S = {D:null, sit:"kupujici", per:"all", H:0.30};
+const S = {D:null, sit:"kupujici", per:"all", H:0.30, mode:"pa"};
 const $ = id => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
@@ -219,11 +228,22 @@ function compute() {
   out.cpi = rebase(bench, i0);
   out.tiles = SIT.map(s => {
     const a = seriesFor(D, s.key, S.H);
-    return {key:s.key, cum:pct(a, i0, i1), yoy:pct(a, i1 - 12, i1)};
+    const cum = pct(a, i0, i1);
+    return {key:s.key, cum, yoy:pct(a, i1 - 12, i1), paV:annualize(cum, i1 - i0)};
   });
+  out.months = i1 - i0;
+  out.canPa = out.months > 12;
+  out.pa = out.canPa && S.mode === "pa";
   out.cpiCum = pct(bench, i0, i1);
   out.cpiYoy = pct(bench, i1 - 12, i1);
+  out.cpiPa = annualize(out.cpiCum, out.months);
   return out;
+}
+/* hlavní číslo: ročně (p. a.) nebo celkem, podle období a přepínače */
+function headline(c) {
+  const mineCum = c.sit[c.i1] - 100, offCum = c.cpi[c.i1] - 100;
+  if (!c.pa) return {mine:mineCum, off:offCum, mineCum, offCum, pa:false, suffix:""};
+  return {mine:annualize(mineCum, c.months), off:annualize(offCum, c.months), mineCum, offCum, pa:true, suffix:" p. a."};
 }
 
 /* ---------- vykreslení ---------- */
@@ -232,8 +252,11 @@ function renderTiles(c) {
   SIT.forEach((s, k) => {
     const t = c.tiles[k];
     const b = el("button", "tile"); b.type = "button"; b.setAttribute("aria-pressed", String(S.sit === s.key));
-    b.append(el("span", "tile-label", s.name), el("span", "tile-value", fmtPct(t.cum, 1)),
-      el("span", "tile-delta", "za 12 měsíců " + fmtPct(t.yoy, 1) + " · oficiálně " + fmtPct(c.cpiYoy, 1)));
+    const val = el("span", "tile-value", fmtPct(c.pa ? t.paV : t.cum, 1));
+    if (c.pa) val.append(el("span", "unit", "p. a."));
+    const delta = c.pa ? "celkem " + fmtPct(t.cum, 1) + " · oficiálně " + fmtPct(c.cpiPa, 1) + " p. a."
+                       : "za 12 měsíců " + fmtPct(t.yoy, 1) + " · oficiálně " + fmtPct(c.cpiYoy, 1);
+    b.append(el("span", "tile-label", s.name), val, el("span", "tile-delta", delta));
     b.addEventListener("click", () => { S.sit = s.key; update(); });
     box.append(b);
   });
@@ -246,13 +269,28 @@ function renderChips() {
     box.append(b);
   });
 }
+function renderModes(c) {
+  $("mode-box").hidden = !c.canPa;
+  const box = $("modes"); box.replaceChildren();
+  [["pa", "Ročně (p. a.)"], ["total", "Celkem"]].forEach(([id, label]) => {
+    const b = el("button", "chip", label); b.type = "button"; b.setAttribute("aria-pressed", String(S.mode === id));
+    b.addEventListener("click", () => { S.mode = id; update(); });
+    box.append(b);
+  });
+}
 function renderVerdict(c) {
-  const s = SIT.find(x => x.key === S.sit);
-  const mine = c.sit[c.i1] - 100, off = c.cpi[c.i1] - 100, diff = mine - off;
-  $("hero").textContent = fmtPct(mine, 1);
+  const s = SIT.find(x => x.key === S.sit), h = headline(c), diff = h.mine - h.off;
+  const hero = $("hero"); hero.replaceChildren(fmtPct(h.mine, 1));
+  if (h.pa) hero.append(el("span", "unit", "p. a."));
   const p = $("verdict-text"); p.replaceChildren();
-  p.append("Pro " + s.who + " vyšla inflace bydlení " + c.per.text + " na ", el("b", null, fmtPct(mine, 1)),
-    ". Oficiální inflace za stejné období je " + fmtPct(off, 1) + ", rozdíl činí ", el("b", null, (diff < 0 ? "−" : "+") + nf1.format(Math.abs(diff)) + NB + "procentních bodů"), ".");
+  const pp = (diff < 0 ? "−" : "+") + nf1.format(Math.abs(diff)) + NB + "procentních bodů" + (h.pa ? " ročně" : "");
+  if (h.pa) {
+    p.append("Pro " + s.who + " vyšla inflace bydlení " + c.per.text + " v průměru na ", el("b", null, fmtPct(h.mine, 1) + " ročně"),
+      " (celkem " + fmtPct(h.mineCum, 1) + "). Oficiální inflace za stejné období je " + fmtPct(h.off, 1) + " ročně (celkem " + fmtPct(h.offCum, 1) + "), rozdíl činí ", el("b", null, pp), ".");
+  } else {
+    p.append("Pro " + s.who + " vyšla inflace bydlení " + c.per.text + " na ", el("b", null, fmtPct(h.mine, 1)),
+      ". Oficiální inflace za stejné období je " + fmtPct(h.off, 1) + ", rozdíl činí ", el("b", null, pp), ".");
+  }
 }
 
 let geo = null;
@@ -322,7 +360,7 @@ function renderChart(c) {
   geo.hit.addEventListener("pointermove", move);
   geo.hit.addEventListener("pointerdown", move);
   geo.hit.addEventListener("pointerleave", hideTip);
-  svg.setAttribute("aria-label", `Graf indexu cen od ${shortLabel(first)} do ${shortLabel(last)}, ${SIT.find(x => x.key === S.sit).name}: ${fmtPct(c.sit[c.i1] - 100, 1)}, oficiální inflace ${fmtPct(c.cpi[c.i1] - 100, 1)}`);
+  svg.setAttribute("aria-label", `Graf indexu cen od ${shortLabel(first)} do ${shortLabel(last)}, ${SIT.find(x => x.key === S.sit).name}: ${fmtPct(headline(c).mine, 1)}${headline(c).suffix}, oficiální inflace ${fmtPct(headline(c).off, 1)}${headline(c).suffix}`);
 }
 let cur = null;
 function showTip(k) {
@@ -367,8 +405,9 @@ function renderTexts() {
    ["Splácím hypotéku", "splátka na 1 Kč jistiny při průměrné sazbě ze zůstatků úvěrů na bydlení. Nezachytí domácnosti, jimž právě skončila fixace; ty zažily skok větší."],
    ["Vlastním bez hypotéky", "žádná složka nákladů na bydlení, jen energie, voda a údržba z koše."],
    ["Bydlím v nájmu", "nájemné z CPI (zahrnuje nové i stávající smlouvy)."]].forEach(([a, b]) => { const li = el("li"); const bb = el("b", null, a + ": "); li.append(bb, b); ul.append(li); });
+  const p3 = el("p", null, "U období delších než rok se celková změna přepočítává na průměrnou roční změnu (p. a.) složeným způsobem: (1 + celková změna)^(12 / počet měsíců) − 1. Přepínačem lze zobrazit i celkovou změnu.");
   const p2 = el("p", null, "Index je vážený průměr obou složek vůči cenám průměru roku 2024: L = podíl × bydlení + (1 − podíl) × koš. Jako srovnání slouží oficiální CPI přepočtené se stejnými váhami (od roku 2024 se od skutečné meziroční inflace liší v průměru o " + nf1.format(M.chyba_prepoctu_cpi_pb.mae_2024_plus).replace(".", ",") + " procentního bodu).");
-  mt.append(p1, ul, p2);
+  mt.append(p1, ul, p2, p3);
   const sr = $("sources"); sr.replaceChildren();
   const u2 = el("ul");
   ["Spotřebitelské ceny a váhy koše: Český statistický úřad (otevřená data, CZ-COICOP).",
@@ -388,11 +427,11 @@ function renderTable(c) {
   t.append(tb);
 }
 function writeHash() {
-  try { history.replaceState(null, "", "#s=" + S.sit + "&p=" + S.per + "&h=" + Math.round(S.H * 100)); } catch (e) { /* vložený frame */ }
+  try { history.replaceState(null, "", "#s=" + S.sit + "&p=" + S.per + "&h=" + Math.round(S.H * 100) + "&m=" + S.mode); } catch (e) { /* vložený frame */ }
 }
 function update() {
   const c = compute();
-  renderTiles(c); renderChips(); renderVerdict(c); renderLegend(); renderTexts(); renderChart(c); renderTable(c); writeHash();
+  renderTiles(c); renderChips(); renderModes(c); renderVerdict(c); renderLegend(); renderTexts(); renderChart(c); renderTable(c); writeHash();
   S.last = c;
 }
 
@@ -404,10 +443,11 @@ function drawCard(cv) {
   g.fillStyle = "#FBF6EB"; g.fillRect(0, 0, W, H);
   g.fillStyle = "#BA3A36"; g.font = `700 30px ${F}`; g.textBaseline = "alphabetic"; g.fillText("pkohout.com", 70, 90);
   g.fillStyle = "#141211"; g.font = `700 54px ${F}`; g.fillText("Inflace se započtením bydlení", 70, 150); g.fillStyle = "#4A4642"; g.font = `400 40px ${F}`; g.fillText(s.name, 70, 205);
-  const mine = c.sit[c.i1] - 100, off = c.cpi[c.i1] - 100;
-  g.fillStyle = "#BA3A36"; g.font = `700 150px ${F}`; g.fillText(fmtPct(mine, 1).replace(NB, " "), 70, 350);
+  const hd = headline(c);
+  g.fillStyle = "#BA3A36"; g.font = `700 150px ${F}`; const big = fmtPct(hd.mine, 1).replace(NB, " "); g.fillText(big, 70, 350);
+  if (hd.pa) { const w = g.measureText(big).width; g.font = `400 54px ${F}`; g.fillText("p. a.", 70 + w + 18, 350); }
   g.fillStyle = "#4A4642"; g.font = `400 34px ${F}`;
-  g.fillText(c.per.text.charAt(0).toUpperCase() + c.per.text.slice(1) + ", oficiální inflace " + fmtPct(off, 1).replace(NB, " "), 70, 410);
+  g.fillText(c.per.text.charAt(0).toUpperCase() + c.per.text.slice(1) + ", oficiální inflace " + fmtPct(hd.off, 1).replace(NB, " ") + hd.suffix, 70, 410);
   // mini graf
   const L = 70, R = W - 70, T = 470, B = 770;
   const vals = []; for (let i = c.i0; i <= c.i1; i++) vals.push(c.sit[i], c.cpi[i]);
@@ -431,7 +471,7 @@ async function onPng() {
 }
 async function onShare() {
   const c = S.last, s = SIT.find(x => x.key === S.sit);
-  const text = "Inflace se započtením bydlení (" + s.name.toLowerCase() + "): " + fmtPct(c.sit[c.i1] - 100, 1) + ", oficiální inflace " + fmtPct(c.cpi[c.i1] - 100, 1) + " (" + c.per.text + ").";
+  const text = "Inflace se započtením bydlení (" + s.name.toLowerCase() + "): " + fmtPct(headline(c).mine, 1) + headline(c).suffix + ", oficiální inflace " + fmtPct(headline(c).off, 1) + headline(c).suffix + " (" + c.per.text + ").";
   const url = (window.top === window ? location.href : "https://www.pkohout.com");
   try {
     const b = await cardBlob(), f = new File([b], "inflace-bydleni.png", {type:"image/png"});
@@ -449,6 +489,7 @@ function readHash() {
     if (SIT.some(s => s.key === p.get("s"))) S.sit = p.get("s");
     if (PERIODS.some(x => x.id === p.get("p"))) S.per = p.get("p");
     const h = Number(p.get("h")); if (h >= 10 && h <= 60) S.H = h / 100;
+    if (p.get("m") === "pa" || p.get("m") === "total") S.mode = p.get("m");
   } catch (e) { /* ignoruj */ }
 }
 async function init() {

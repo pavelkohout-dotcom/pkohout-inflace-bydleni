@@ -105,6 +105,11 @@ def situation_index(res, key, H):
     return H * res["hc"][key] + (1.0 - H) * res["n"]
 
 
+def per_annum(total_pct, months):
+    """Přepočet celkové změny (v %) za dané období na průměrnou roční změnu (složené, geometricky)."""
+    return ((1 + total_pct / 100) ** (12 / months) - 1) * 100
+
+
 def summarize(res, H):
     """Souhrnná čísla pro výchozí podíl bydlení H."""
     out = {}
@@ -114,6 +119,7 @@ def summarize(res, H):
         s = situation_index(res, key, H)
         out[key] = {
             "od_zacatku_pct": round(float((s.iloc[-1] / s.iloc[0] - 1) * 100), 1),
+            "rocne_od_zacatku_pct": round(float(per_annum((s.iloc[-1] / s.iloc[0] - 1) * 100, len(s) - 1)), 1),
             "mezirocne_pct": round(float((s.iloc[-1] / s.loc[last - 12] - 1) * 100), 1),
         }
     return out

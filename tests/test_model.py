@@ -73,6 +73,12 @@ class ModelTests(unittest.TestCase):
             got = (s.loc["2026-05"] / s.loc["2015-12"] - 1) * 100
             self.assertAlmostEqual(float(got), exp, delta=0.15, msg=key)
 
+    def test_per_annum(self):
+        self.assertAlmostEqual(model.per_annum(100, 120), 7.1773, places=3)   # zdvojnásobení za 10 let
+        self.assertAlmostEqual(model.per_annum(21, 24), 10.0, places=6)       # +21 % za 2 roky = 10 % ročně
+        self.assertAlmostEqual(model.per_annum(5, 12), 5.0, places=9)         # 12 měsíců: beze změny
+        self.assertAlmostEqual(model.per_annum(-19, 24), -10.0, places=6)     # záporná změna
+
     def test_hpi_estimate_flagged(self):
         est = self.res["hpi_est_from"]
         self.assertIsNotNone(est)
