@@ -3,100 +3,111 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Inflace bydlení: oficiální číslo vs. vaše situace | pkohout.com</title>
+<title>Inflace se započtením bydlení | pkohout.com</title>
 <meta name="description" content="Oficiální inflace průměruje všechny domácnosti. Spočítejte si, jak se od roku 2015 zdražilo bydlení vám, pokud kupujete, splácíte hypotéku, vlastníte, nebo bydlíte v nájmu.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
-  --surface:#FFFFFF; --wash:#F4F4F3; --ink:#191919; --ink2:#595858; --muted:#727272;
-  --grid:#E5E5E4; --base:#ACABAB; --accent:#BA3A36; --bench:#727272; --beige:#EFDACE;
-  --font:"Avenir Next","Avenir","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --surface:#FBF6EB; --card:#FFFDF8; --ink:#141211; --ink2:#4A4642; --muted:#6F6A62;
+  --line:#282626; --soft:#DCD6C9; --grid:#E6DFD0; --base:#A9A397; --accent:#BA3A36; --bench:#6F6A62;
+  --serif:"EB Garamond",Garamond,"Cormorant Garamond","Times New Roman",Georgia,serif;
+  --sans:"Avenir Next","Avenir","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5}
-.wrap{max-width:920px;margin:0 auto;padding:28px 20px 40px}
-h1{font-size:clamp(24px,4.2vw,34px);line-height:1.15;margin:0 0 10px;font-weight:700;letter-spacing:-.01em}
-.lead{color:var(--ink2);margin:0 0 22px;max-width:62ch}
-.lead b{color:var(--ink);font-weight:600}
-.row-label{font-size:13px;color:var(--muted);margin:0 0 8px}
+body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--serif);font-size:19px;line-height:1.55}
+.wrap{max-width:780px;margin:0 auto;padding:28px 20px 40px}
+h1{font-size:clamp(32px,5.4vw,44px);line-height:1.1;margin:0 0 14px;font-weight:400;letter-spacing:-.005em}
+.lead{color:var(--ink);margin:0 0 22px;max-width:60ch;font-size:19px}
+.lead b{font-weight:600}
+.rule{border:0;border-top:1px solid var(--line);margin:0 0 22px}
+.row-label{font-size:15px;color:var(--muted);margin:0 0 8px}
 /* dlaždice = výběr situace */
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.tile{font:inherit;text-align:left;background:var(--surface);border:1px solid var(--grid);border-radius:4px;padding:12px 14px;cursor:pointer;color:var(--ink);transition:border-color .15s,background .15s}
-.tile:hover{border-color:var(--base)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.tile{font:inherit;text-align:left;background:transparent;border:1px solid var(--line);border-radius:0;padding:12px 14px;cursor:pointer;color:var(--ink);transition:background .15s,color .15s}
+.tile:hover{background:var(--card)}
 .tile:focus-visible,.chip:focus-visible,.btn:focus-visible,summary:focus-visible,#chart:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.tile[aria-pressed="true"]{border-color:var(--accent);background:#FBF5F1;box-shadow:inset 0 0 0 1px var(--accent)}
-.tile-label{display:block;font-size:13px;color:var(--ink2);margin-bottom:4px}
-.tile-value{display:block;font-size:24px;font-weight:600;line-height:1.1}
-.tile-delta{display:block;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}
+.tile[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tile-label{display:block;font-size:16px;margin-bottom:2px}
+.tile-value{display:block;font-size:32px;font-weight:500;line-height:1.1}
+.tile-delta{display:block;font-size:14px;color:var(--muted);margin-top:6px;line-height:1.3}
+.tile[aria-pressed="true"] .tile-delta{color:#FBE9E4}
 /* ovládání */
-.controls{display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-end;margin-bottom:22px}
+.controls{display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-end;margin-bottom:24px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:inherit;font-size:14px;background:var(--surface);border:1px solid var(--grid);border-radius:999px;padding:5px 14px;cursor:pointer;color:var(--ink2)}
-.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip{font:inherit;font-size:16px;background:transparent;border:1px solid var(--line);border-radius:0;padding:4px 14px;cursor:pointer;color:var(--ink)}
+.chip:hover{background:var(--card)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 .slider{min-width:240px;flex:1;max-width:380px}
-.slider label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+.slider label{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-bottom:6px}
 .slider label b{color:var(--ink);font-weight:600}
 input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 .slider[hidden]{display:none}
 /* verdikt */
-.verdict{display:flex;flex-wrap:wrap;gap:6px 28px;align-items:baseline;margin:6px 0 14px}
-.hero{font-size:clamp(48px,9vw,68px);line-height:1;font-weight:600;color:var(--accent);letter-spacing:-.02em}
-.verdict p{margin:0;flex:1;min-width:240px;font-size:17px;color:var(--ink2)}
+.verdict{display:flex;flex-wrap:wrap;gap:6px 28px;align-items:baseline;margin:6px 0 16px}
+.hero{font-size:clamp(56px,10vw,80px);line-height:1;font-weight:400;color:var(--accent);letter-spacing:-.01em}
+.verdict p{margin:0;flex:1;min-width:240px;font-size:20px;color:var(--ink2)}
 .verdict p b{color:var(--ink);font-weight:600}
 /* graf */
 figure{margin:0}
-.legend{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:13px;color:var(--ink2);margin:0 0 8px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 22px;font-size:15px;color:var(--ink2);margin:0 0 8px}
 .legend span{display:inline-flex;align-items:center;gap:8px}
-.key{display:inline-block;width:22px;height:0;border-top:2px solid var(--accent);border-radius:2px}
+.key{display:inline-block;width:22px;height:0;border-top:2px solid var(--accent)}
 .key.bench{border-top-color:var(--bench)}
 .key.est{border-top-style:dashed}
 .chart-box{position:relative}
-#chart{display:block;width:100%;height:auto;touch-action:pan-y}
-.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--grid);border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:8px 10px;font-size:13px;min-width:170px;opacity:0;transition:opacity .08s;z-index:2}
+#chart{display:block;width:100%;height:auto;touch-action:pan-y;font-family:var(--sans)}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:0;padding:8px 10px;font-family:var(--sans);font-size:13px;min-width:170px;opacity:0;transition:opacity .08s;z-index:2}
 .tip.on{opacity:1}
 .tip .t-date{color:var(--muted);font-size:12px;margin-bottom:4px}
 .tip .t-row{display:flex;align-items:center;gap:8px;margin-top:3px}
 .tip .t-val{font-weight:600;color:var(--ink);min-width:44px}
 .tip .t-name{color:var(--ink2)}
 .tip .t-note{color:var(--muted);font-size:11.5px;margin-top:5px}
-.caption{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.caption{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin:8px 0 0}
 /* tlačítka */
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}
-.btn{font:inherit;font-size:14px;background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:4px;padding:9px 16px;cursor:pointer}
-.btn.ghost{background:var(--surface);color:var(--ink)}
-.btn:hover{border-color:var(--accent)}
-.msg{font-size:13px;color:var(--ink2);min-height:1.4em;margin:2px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 8px}
+.btn{font:inherit;font-size:19px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:0;padding:6px 18px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:hover{filter:brightness(.92)}
+.btn.ghost:hover{background:var(--card);filter:none}
+.msg{font-family:var(--sans);font-size:13px;color:var(--ink2);min-height:1.4em;margin:2px 0 0}
 /* rozbalovací části */
-details{border-top:1px solid var(--grid);padding:12px 0}
-details:last-of-type{border-bottom:1px solid var(--grid)}
-summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none}
+details{border-top:1px solid var(--line);padding:12px 0}
+details:last-of-type{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;font-weight:500;font-size:21px;list-style:none}
 summary::-webkit-details-marker{display:none}
-summary::before{content:"+";display:inline-block;width:20px;color:var(--accent);font-weight:700}
+summary::before{content:"+";display:inline-block;width:22px;color:var(--accent);font-weight:500}
 details[open] summary::before{content:"–"}
-details .body{padding:10px 0 2px 20px;color:var(--ink2);font-size:14.5px}
+details .body{padding:10px 0 2px 22px;color:var(--ink2);font-size:18px}
 details .body p{margin:0 0 10px}
 details .body ul{margin:0 0 10px;padding-left:18px}
-.tbl-wrap{max-height:340px;overflow:auto;border:1px solid var(--grid);border-radius:4px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:5px 10px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+.tbl-wrap{max-height:340px;overflow:auto;border:1px solid var(--soft)}
+table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:13px}
+th,td{padding:5px 10px;text-align:right;border-bottom:1px solid var(--soft);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
-th{position:sticky;top:0;background:var(--wash);font-weight:600;color:var(--ink2)}
+th{position:sticky;top:0;background:var(--card);font-weight:600;color:var(--ink2)}
 td{font-variant-numeric:tabular-nums}
-.foot{margin-top:18px;font-size:12.5px;color:var(--muted)}
+.disclaimer{margin:24px 0 0;padding-top:14px;border-top:1px solid var(--soft);font-style:italic;font-size:16px;line-height:1.5;color:var(--ink2)}
+.foot{margin-top:14px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center}
 .foot a{color:var(--accent);text-decoration:none}
-.err{padding:18px;border:1px solid var(--grid);border-radius:4px;color:var(--ink2)}
+.err{padding:18px;border:1px solid var(--line);color:var(--ink2)}
 @media (max-width:720px){
   .tiles{grid-template-columns:repeat(2,1fr)}
   .wrap{padding:20px 14px 32px}
+  body{font-size:18px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main class="wrap" id="app">
-  <h1>Vaše inflace bydlení</h1>
+  <h1>Inflace se započtením bydlení</h1>
   <p class="lead">Oficiální inflace je průměr za všechny domácnosti. <b>Nezachytí ale ceny starších bytů ani splátky nové hypotéky</b>, a tak se čísla, která pociťujete vy, mohou lišit. Vyberte situaci, ve které jste.</p>
 
+  <hr class="rule">
   <noscript><p class="err">Kalkulačka potřebuje JavaScript.</p></noscript>
   <div id="content" hidden>
     <p class="row-label" id="lbl-sit">Jaká je vaše situace?</p>
@@ -146,6 +157,7 @@ td{font-variant-numeric:tabular-nums}
       <div class="body" id="sources"></div>
     </details>
 
+    <p class="disclaimer">Obsah stránek, konzultací, školení a přednášek má výhradně vzdělávací a informativní charakter. Nejde o investiční poradenství ani jinou investiční službu ve smyslu zák. č. 256/2004 Sb., ani o individuální doporučení k nákupu, prodeji či držení konkrétního investičního nástroje. Pro posouzení konkrétní investice se obraťte na osobu s příslušným oprávněním ČNB.</p>
     <p class="foot" id="foot"></p>
   </div>
   <p class="err" id="error" hidden></p>
@@ -220,7 +232,7 @@ function renderTiles(c) {
   SIT.forEach((s, k) => {
     const t = c.tiles[k];
     const b = el("button", "tile"); b.type = "button"; b.setAttribute("aria-pressed", String(S.sit === s.key));
-    b.append(el("span", "tile-label", s.name), el("span", "tile-value", fmtPct(t.cum)),
+    b.append(el("span", "tile-label", s.name), el("span", "tile-value", fmtPct(t.cum, 1)),
       el("span", "tile-delta", "za 12 měsíců " + fmtPct(t.yoy, 1) + " · oficiálně " + fmtPct(c.cpiYoy, 1)));
     b.addEventListener("click", () => { S.sit = s.key; update(); });
     box.append(b);
@@ -237,10 +249,10 @@ function renderChips() {
 function renderVerdict(c) {
   const s = SIT.find(x => x.key === S.sit);
   const mine = c.sit[c.i1] - 100, off = c.cpi[c.i1] - 100, diff = mine - off;
-  $("hero").textContent = fmtPct(mine);
+  $("hero").textContent = fmtPct(mine, 1);
   const p = $("verdict-text"); p.replaceChildren();
-  p.append("Pro " + s.who + " vyšla inflace bydlení " + c.per.text + " na ", el("b", null, fmtPct(mine)),
-    ". Oficiální inflace za stejné období je " + fmtPct(off) + ", rozdíl činí ", el("b", null, (diff < 0 ? "−" : "+") + nf0.format(Math.abs(diff)) + NB + "procentních bodů"), ".");
+  p.append("Pro " + s.who + " vyšla inflace bydlení " + c.per.text + " na ", el("b", null, fmtPct(mine, 1)),
+    ". Oficiální inflace za stejné období je " + fmtPct(off, 1) + ", rozdíl činí ", el("b", null, (diff < 0 ? "−" : "+") + nf1.format(Math.abs(diff)) + NB + "procentních bodů"), ".");
 }
 
 let geo = null;
@@ -263,27 +275,27 @@ function renderChart(c) {
   geo = {idx, X, W, H, m};
 
   for (let v = y0; v <= y1 + 1e-9; v += step) {
-    mk("line", {x1:m.l, x2:W - m.r, y1:Y(v), y2:Y(v), stroke:"#E5E5E4", "stroke-width":1});
-    const t = mk("text", {x:m.l - 8, y:Y(v) + 4, "text-anchor":"end", "font-size":12, fill:"#727272"}); t.textContent = nf0.format(v);
+    mk("line", {x1:m.l, x2:W - m.r, y1:Y(v), y2:Y(v), stroke:"#E6DFD0", "stroke-width":1});
+    const t = mk("text", {x:m.l - 8, y:Y(v) + 4, "text-anchor":"end", "font-size":12, fill:"#6F6A62"}); t.textContent = nf0.format(v);
   }
-  mk("line", {x1:m.l, x2:W - m.r, y1:Y(y0), y2:Y(y0), stroke:"#ACABAB", "stroke-width":1});
+  mk("line", {x1:m.l, x2:W - m.r, y1:Y(y0), y2:Y(y0), stroke:"#A9A397", "stroke-width":1});
   // osa x: roční značky
   const stepY = idx.length > 90 ? 2 : 1;
   idx.forEach((i, k) => {
     const [yr, mo] = D.mesice[i].split("-").map(Number);
-    const minGap = 38 * (idx.length - 1) / (W - m.l - m.r);
+    const minGap = 58 * (idx.length - 1) / (W - m.l - m.r);
     if (mo === 1 && yr % stepY === 0 && k > minGap && k < idx.length - 1 - minGap) {
-      const t = mk("text", {x:X(k), y:H - 9, "text-anchor":"middle", "font-size":12, fill:"#727272"}); t.textContent = yr;
+      const t = mk("text", {x:X(k), y:H - 9, "text-anchor":"middle", "font-size":12, fill:"#6F6A62"}); t.textContent = yr;
     }
   });
   const first = D.mesice[c.i0], last = D.mesice[c.i1];
-  const t0 = mk("text", {x:m.l, y:H - 9, "text-anchor":"start", "font-size":12, fill:"#727272"}); t0.textContent = shortLabel(first);
-  const t1 = mk("text", {x:W - m.r, y:H - 9, "text-anchor":"end", "font-size":12, fill:"#727272"}); t1.textContent = shortLabel(last);
+  const t0 = mk("text", {x:m.l, y:H - 9, "text-anchor":"start", "font-size":12, fill:"#6F6A62"}); t0.textContent = shortLabel(first);
+  const t1 = mk("text", {x:W - m.r, y:H - 9, "text-anchor":"end", "font-size":12, fill:"#6F6A62"}); t1.textContent = shortLabel(last);
   // reference 100
   // čáry
   const path = (arr, from, to) => idx.slice(from, to).map((i, k) => (k ? "L" : "M") + X(from + k).toFixed(1) + "," + Y(arr[i]).toFixed(1)).join("");
   const line = (arr, color, w, dash, from, to) => mk("path", {d:path(arr, from, to), fill:"none", stroke:color, "stroke-width":w, "stroke-linejoin":"round", "stroke-linecap":"round", ...(dash ? {"stroke-dasharray":"3 4"} : {})});
-  line(c.cpi, "#727272", 2, false, 0, idx.length);
+  line(c.cpi, "#6F6A62", 2, false, 0, idx.length);
   let estStart = null;
   if (S.sit === "kupujici" && D.meta.hpi_odhad_od) {
     const e = D.mesice.indexOf(D.meta.hpi_odhad_od);
@@ -296,21 +308,21 @@ function renderChart(c) {
   geo.estStart = estStart;
   // koncové body (prstenec barvy povrchu) a popisky
   const endK = idx.length - 1, ys = Y(c.sit[c.i1]), yc = Y(c.cpi[c.i1]);
-  [[c.cpi, "#727272", yc], [c.sit, "#BA3A36", ys]].forEach(([arr, col, yy]) => mk("circle", {cx:X(endK), cy:yy, r:4.5, fill:col, stroke:"#fff", "stroke-width":2}));
-  const lab = mk("text", {x:X(endK) + 10, y:ys + 4, "font-size":13, "font-weight":700, fill:"#191919"}); lab.textContent = nf0.format(c.sit[c.i1]);
+  [[c.cpi, "#6F6A62", yc], [c.sit, "#BA3A36", ys]].forEach(([arr, col, yy]) => mk("circle", {cx:X(endK), cy:yy, r:4.5, fill:col, stroke:"#FBF6EB", "stroke-width":2}));
+  const lab = mk("text", {x:X(endK) + 10, y:ys + 4, "font-size":13, "font-weight":700, fill:"#141211"}); lab.textContent = nf0.format(c.sit[c.i1]);
   if (Math.abs(ys - yc) >= 16) {
-    const l2 = mk("text", {x:X(endK) + 10, y:yc + 4, "font-size":12, fill:"#595858"}); l2.textContent = nf0.format(c.cpi[c.i1]);
+    const l2 = mk("text", {x:X(endK) + 10, y:yc + 4, "font-size":12, fill:"#4A4642"}); l2.textContent = nf0.format(c.cpi[c.i1]);
   }
   // crosshair
-  geo.cross = mk("line", {x1:0, x2:0, y1:m.t, y2:H - m.b, stroke:"#191919", "stroke-width":1, opacity:0});
-  geo.dotS = mk("circle", {r:4.5, fill:"#BA3A36", stroke:"#fff", "stroke-width":2, opacity:0});
-  geo.dotC = mk("circle", {r:4.5, fill:"#727272", stroke:"#fff", "stroke-width":2, opacity:0});
+  geo.cross = mk("line", {x1:0, x2:0, y1:m.t, y2:H - m.b, stroke:"#141211", "stroke-width":1, opacity:0});
+  geo.dotS = mk("circle", {r:4.5, fill:"#BA3A36", stroke:"#FBF6EB", "stroke-width":2, opacity:0});
+  geo.dotC = mk("circle", {r:4.5, fill:"#6F6A62", stroke:"#FBF6EB", "stroke-width":2, opacity:0});
   geo.Y = Y; geo.c = c; geo.hit = mk("rect", {x:m.l, y:0, width:W - m.l - m.r, height:H, fill:"transparent"});
   const move = ev => { const r = svg.getBoundingClientRect(); const px = (ev.clientX - r.left) * (W / r.width); showTip(Math.round(((px - m.l) / (W - m.l - m.r)) * (idx.length - 1))); };
   geo.hit.addEventListener("pointermove", move);
   geo.hit.addEventListener("pointerdown", move);
   geo.hit.addEventListener("pointerleave", hideTip);
-  svg.setAttribute("aria-label", `Graf indexu cen od ${shortLabel(first)} do ${shortLabel(last)}, ${SIT.find(x => x.key === S.sit).name}: ${fmtPct(c.sit[c.i1] - 100)}, oficiální inflace ${fmtPct(c.cpi[c.i1] - 100)}`);
+  svg.setAttribute("aria-label", `Graf indexu cen od ${shortLabel(first)} do ${shortLabel(last)}, ${SIT.find(x => x.key === S.sit).name}: ${fmtPct(c.sit[c.i1] - 100, 1)}, oficiální inflace ${fmtPct(c.cpi[c.i1] - 100, 1)}`);
 }
 let cur = null;
 function showTip(k) {
@@ -322,7 +334,7 @@ function showTip(k) {
   geo.dotC.setAttribute("cx", x); geo.dotC.setAttribute("cy", geo.Y(c.cpi[i])); geo.dotC.setAttribute("opacity", 1);
   const tip = $("tip"); tip.replaceChildren();
   tip.append(el("div", "t-date", monthLabel(D.mesice[i])));
-  [["#BA3A36", c.sit[i], SIT.find(s => s.key === S.sit).name, false], ["#727272", c.cpi[i], "Oficiální CPI", true]].forEach(([col, v, name]) => {
+  [["#BA3A36", c.sit[i], SIT.find(s => s.key === S.sit).name, false], ["#6F6A62", c.cpi[i], "Oficiální CPI", true]].forEach(([col, v, name]) => {
     const r = el("div", "t-row"); const key = el("span", "key"); key.style.borderTopColor = col;
     r.append(key, el("span", "t-val", nf1.format(v)), el("span", "t-name", name + " (" + fmtPct(v - 100, 1) + ")")); tip.append(r);
   });
@@ -388,29 +400,29 @@ function update() {
 function drawCard(cv) {
   const c = S.last, s = SIT.find(x => x.key === S.sit), W = 1200, H = 900;
   cv.width = W; cv.height = H; const g = cv.getContext("2d");
-  const F = '"Avenir Next","Avenir","Helvetica Neue",Helvetica,Arial,sans-serif';
-  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  const F = '"EB Garamond",Garamond,"Times New Roman",Georgia,serif';
+  g.fillStyle = "#FBF6EB"; g.fillRect(0, 0, W, H);
   g.fillStyle = "#BA3A36"; g.font = `700 30px ${F}`; g.textBaseline = "alphabetic"; g.fillText("pkohout.com", 70, 90);
-  g.fillStyle = "#191919"; g.font = `700 54px ${F}`; g.fillText("Inflace bydlení: " + s.name.toLowerCase(), 70, 190);
+  g.fillStyle = "#141211"; g.font = `700 54px ${F}`; g.fillText("Inflace se započtením bydlení", 70, 150); g.fillStyle = "#4A4642"; g.font = `400 40px ${F}`; g.fillText(s.name, 70, 205);
   const mine = c.sit[c.i1] - 100, off = c.cpi[c.i1] - 100;
-  g.fillStyle = "#BA3A36"; g.font = `700 150px ${F}`; g.fillText(fmtPct(mine).replace(NB, " "), 70, 350);
-  g.fillStyle = "#595858"; g.font = `400 34px ${F}`;
-  g.fillText(c.per.text.charAt(0).toUpperCase() + c.per.text.slice(1) + ", oficiální inflace " + fmtPct(off).replace(NB, " "), 70, 410);
+  g.fillStyle = "#BA3A36"; g.font = `700 150px ${F}`; g.fillText(fmtPct(mine, 1).replace(NB, " "), 70, 350);
+  g.fillStyle = "#4A4642"; g.font = `400 34px ${F}`;
+  g.fillText(c.per.text.charAt(0).toUpperCase() + c.per.text.slice(1) + ", oficiální inflace " + fmtPct(off, 1).replace(NB, " "), 70, 410);
   // mini graf
   const L = 70, R = W - 70, T = 470, B = 770;
   const vals = []; for (let i = c.i0; i <= c.i1; i++) vals.push(c.sit[i], c.cpi[i]);
   const lo = Math.min(100, ...vals), hi = Math.max(...vals);
   const X = i => L + ((i - c.i0) / (c.i1 - c.i0)) * (R - L), Y = v => B - ((v - lo) / (hi - lo)) * (B - T);
-  g.strokeStyle = "#E5E5E4"; g.lineWidth = 2; g.beginPath(); g.moveTo(L, Y(100)); g.lineTo(R, Y(100)); g.stroke();
+  g.strokeStyle = "#E6DFD0"; g.lineWidth = 2; g.beginPath(); g.moveTo(L, Y(100)); g.lineTo(R, Y(100)); g.stroke();
   const draw = (arr, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.lineJoin = "round"; g.lineCap = "round"; g.beginPath(); for (let i = c.i0; i <= c.i1; i++) { const x = X(i), y = Y(arr[i]); i === c.i0 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke(); };
-  draw(c.cpi, "#727272", 5); draw(c.sit, "#BA3A36", 6);
-  [[c.cpi, "#727272"], [c.sit, "#BA3A36"]].forEach(([a, col]) => { g.fillStyle = "#fff"; g.beginPath(); g.arc(R, Y(a[c.i1]), 13, 0, 7); g.fill(); g.fillStyle = col; g.beginPath(); g.arc(R, Y(a[c.i1]), 9, 0, 7); g.fill(); });
-  g.fillStyle = "#595858"; g.font = `400 26px ${F}`;
-  g.fillText("— " + s.name, L, 815); g.fillStyle = "#727272"; g.fillText("— Oficiální CPI", L + 330, 815);
-  g.fillStyle = "#727272"; g.font = `400 22px ${F}`;
+  draw(c.cpi, "#6F6A62", 5); draw(c.sit, "#BA3A36", 6);
+  [[c.cpi, "#6F6A62"], [c.sit, "#BA3A36"]].forEach(([a, col]) => { g.fillStyle = "#FBF6EB"; g.beginPath(); g.arc(R, Y(a[c.i1]), 13, 0, 7); g.fill(); g.fillStyle = col; g.beginPath(); g.arc(R, Y(a[c.i1]), 9, 0, 7); g.fill(); });
+  g.fillStyle = "#4A4642"; g.font = `400 26px ${F}`;
+  g.fillText("— " + s.name, L, 815); g.fillStyle = "#6F6A62"; g.fillText("— Oficiální CPI", L + 330, 815);
+  g.fillStyle = "#6F6A62"; g.font = `400 22px ${F}`;
   g.fillText("Zdroj: ČSÚ, ČNB ARAD, výpočet pkohout.com. Experimentální index, ne oficiální statistika.", L, 860);
 }
-function cardBlob() { return new Promise(res => { const cv = document.createElement("canvas"); drawCard(cv); cv.toBlob(res, "image/png"); }); }
+function cardBlob() { return (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => new Promise(res => { const cv = document.createElement("canvas"); drawCard(cv); cv.toBlob(res, "image/png"); })); }
 const say = t => { $("msg").textContent = t; };
 async function onPng() {
   const b = await cardBlob(); const a = document.createElement("a");
@@ -419,7 +431,7 @@ async function onPng() {
 }
 async function onShare() {
   const c = S.last, s = SIT.find(x => x.key === S.sit);
-  const text = "Inflace bydlení (" + s.name.toLowerCase() + "): " + fmtPct(c.sit[c.i1] - 100) + ", oficiální inflace " + fmtPct(c.cpi[c.i1] - 100) + " (" + c.per.text + ").";
+  const text = "Inflace se započtením bydlení (" + s.name.toLowerCase() + "): " + fmtPct(c.sit[c.i1] - 100, 1) + ", oficiální inflace " + fmtPct(c.cpi[c.i1] - 100, 1) + " (" + c.per.text + ").";
   const url = (window.top === window ? location.href : "https://www.pkohout.com");
   try {
     const b = await cardBlob(), f = new File([b], "inflace-bydleni.png", {type:"image/png"});
